@@ -13,7 +13,8 @@ function getConnected() {
 }
 
 // Local JSON-based storage setup
-const DATA_DIR = path.join(__dirname, '../data');
+// Use /tmp inside Vercel because the deployment filesystem is read-only
+const DATA_DIR = process.env.VERCEL ? '/tmp' : path.join(__dirname, '../data');
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
@@ -22,7 +23,18 @@ class JSONModel {
   constructor(filename) {
     this.filePath = path.join(DATA_DIR, filename);
     if (!fs.existsSync(this.filePath)) {
-      fs.writeFileSync(this.filePath, JSON.stringify([], null, 2));
+      const seedPath = path.join(__dirname, '../data', filename);
+      if (process.env.VERCEL && fs.existsSync(seedPath)) {
+        try {
+          fs.copyFileSync(seedPath, this.filePath);
+          console.log(`[Vercel Serverless] Seeded local file database from ${filename}`);
+        } catch (copyErr) {
+          console.error(`[Vercel Serverless] Failed to seed ${filename}:`, copyErr);
+          fs.writeFileSync(this.filePath, JSON.stringify([], null, 2));
+        }
+      } else {
+        fs.writeFileSync(this.filePath, JSON.stringify([], null, 2));
+      }
     }
   }
 
