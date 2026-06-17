@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
-import { X, Trash2, ArrowLeft, ShoppingCart, CreditCard, Sparkles, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Trash2, ArrowLeft, ShoppingCart, CreditCard, Loader2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Cart = ({ isOpen, onClose, cart, updateQuantity, removeFromCart, clearCart, addToast }) => {
+  const { user, token, triggerLogin } = useAuth();
+  
   const [isCheckout, setIsCheckout] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -10,6 +13,17 @@ const Cart = ({ isOpen, onClose, cart, updateQuantity, removeFromCart, clearCart
     email: '',
     address: ''
   });
+
+  // Pre-fill user details from authenticated context
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.name,
+        email: user.email
+      }));
+    }
+  }, [user]);
 
   if (!isOpen) return null;
 
@@ -20,9 +34,18 @@ const Cart = ({ isOpen, onClose, cart, updateQuantity, removeFromCart, clearCart
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleCheckoutClick = () => {
+    if (!user) {
+      // Trigger login first, then open checkout on success
+      triggerLogin(() => setIsCheckout(true));
+    } else {
+      setIsCheckout(true);
+    }
+  };
+
   const handleCheckoutSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.phone || !formData.address) {
+    if (!formData.phone || !formData.address) {
       addToast('Please fill out all required fields', 'error');
       return;
     }
@@ -40,12 +63,11 @@ const Cart = ({ isOpen, onClose, cart, updateQuantity, removeFromCart, clearCart
       const response = await fetch('http://localhost:5001/api/orders', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          customerName: formData.name,
           customerPhone: formData.phone,
-          customerEmail: formData.email,
           customerAddress: formData.address,
           items: orderItems,
           totalAmount: totalAmount
@@ -61,7 +83,7 @@ const Cart = ({ isOpen, onClose, cart, updateQuantity, removeFromCart, clearCart
       addToast('Order placed successfully! Fresh farm goods are on their way.', 'success');
       clearCart();
       setIsCheckout(false);
-      setFormData({ name: '', phone: '', email: '', address: '' });
+      setFormData({ name: user?.name || '', phone: '', email: user?.email || '', address: '' });
       onClose();
     } catch (err) {
       addToast(err.message || 'Error processing your checkout', 'error');
@@ -112,7 +134,7 @@ const Cart = ({ isOpen, onClose, cart, updateQuantity, removeFromCart, clearCart
                   <div className="cart-item-info">
                     <div className="cart-item-title">{item.name}</div>
                     <div className="cart-item-farmer">from {item.farmerName} ({item.farmerLocation})</div>
-                    <div className="cart-item-price">${Number(item.price).toFixed(2)} / {item.unit}</div>
+                    <div className="cart-item-price">₹{Number(item.price).toFixed(2)} / {item.unit}</div>
                   </div>
                   <div className="cart-item-actions">
                     <div className="qty-control">
@@ -131,11 +153,11 @@ const Cart = ({ isOpen, onClose, cart, updateQuantity, removeFromCart, clearCart
             <div className="cart-footer">
               <div className="cart-totals">
                 <span>Total Amount:</span>
-                <span>${totalAmount.toFixed(2)}</span>
+                <span>₹{totalAmount.toFixed(2)}</span>
               </div>
               <button 
                 className="btn btn-secondary cart-checkout-btn"
-                onClick={() => setIsCheckout(true)}
+                onClick={handleCheckoutClick}
               >
                 Proceed to Checkout
               </button>
@@ -150,15 +172,14 @@ const Cart = ({ isOpen, onClose, cart, updateQuantity, removeFromCart, clearCart
             </div>
 
             <div className="form-group">
-              <label className="form-label">Name *</label>
+              <label className="form-label">Verified Name</label>
               <input 
                 type="text" 
                 name="name"
                 value={formData.name}
-                onChange={handleInputChange}
                 className="form-input" 
-                placeholder="John Doe" 
-                required
+                disabled
+                style={{ opacity: 0.7, background: 'rgba(0,0,0,0.03)', cursor: 'not-allowed' }}
               />
             </div>
 
@@ -176,14 +197,14 @@ const Cart = ({ isOpen, onClose, cart, updateQuantity, removeFromCart, clearCart
             </div>
 
             <div className="form-group">
-              <label className="form-label">Email Address (Optional)</label>
+              <label className="form-label">Verified Email</label>
               <input 
                 type="email" 
                 name="email"
                 value={formData.email}
-                onChange={handleInputChange}
                 className="form-input" 
-                placeholder="john@example.com" 
+                disabled
+                style={{ opacity: 0.7, background: 'rgba(0,0,0,0.03)', cursor: 'not-allowed' }}
               />
             </div>
 
@@ -204,7 +225,7 @@ const Cart = ({ isOpen, onClose, cart, updateQuantity, removeFromCart, clearCart
             <div className="cart-footer" style={{ background: 'none', padding: '1.5rem 0 0 0', marginTop: 'auto' }}>
               <div className="cart-totals" style={{ marginBottom: '1rem' }}>
                 <span>Order Total:</span>
-                <span>${totalAmount.toFixed(2)}</span>
+                <span>₹{totalAmount.toFixed(2)}</span>
               </div>
               <button 
                 type="submit" 

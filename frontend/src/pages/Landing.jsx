@@ -172,9 +172,9 @@ const Landing = () => {
     );
 
     tl.fromTo(
-      '.cta-group .btn',
-      { opacity: 0, scale: 0.95 },
-      { opacity: 1, scale: 1, duration: 0.55, stagger: 0.12 },
+      '.gateway-card',
+      { opacity: 0, scale: 0.95, y: 15 },
+      { opacity: 1, scale: 1, y: 0, duration: 0.65, stagger: 0.15 },
       '-=0.4'
     );
 
@@ -258,13 +258,34 @@ const Landing = () => {
             An organic bridge matching local growers directly with conscious community buyers. Get your vegetables, fruits, and honey harvested fresh, at prices that support the soil.
           </p>
           
-          <div className="cta-group">
-            <button className="btn btn-primary" onClick={() => navigate('/consumer')}>
-              Explore Marketplace <ArrowRight size={16} />
-            </button>
-            <button className="btn btn-outline" onClick={() => navigate('/farmer')}>
-              Farmer Registration
-            </button>
+          <div className="gateway-cards">
+            {/* Consumer Gateway Card */}
+            <div className="gateway-card consumer-gw" onClick={() => navigate('/consumer')}>
+              <div className="gateway-header">
+                <div className="gateway-icon">
+                  <ShoppingBag size={20} />
+                </div>
+                <h3>I am a Consumer</h3>
+              </div>
+              <p>Browse local listings, buy organic goods directly, and support nearby farms.</p>
+              <div className="gateway-btn-label">
+                Shop Marketplace <ArrowRight size={14} />
+              </div>
+            </div>
+
+            {/* Farmer Gateway Card */}
+            <div className="gateway-card farmer-gw" onClick={() => navigate('/farmer')}>
+              <div className="gateway-header">
+                <div className="gateway-icon">
+                  <Sprout size={20} />
+                </div>
+                <h3>I am a Farmer</h3>
+              </div>
+              <p>List your harvested crops, manage real-time stock levels, and set your own prices.</p>
+              <div className="gateway-btn-label">
+                Farmer Dashboard <ArrowRight size={14} />
+              </div>
+            </div>
           </div>
 
           <div className="hero-stats">

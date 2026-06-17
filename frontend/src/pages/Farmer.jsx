@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, User, MapPin, ClipboardList, Package, Truck, CheckCircle2, ShoppingBag } from 'lucide-react';
+import { Plus, Edit2, Trash2, User, MapPin, ClipboardList, Package, Truck, CheckCircle2, ShoppingBag, ShieldAlert } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const CATEGORIES = ['Vegetable', 'Fruit', 'Grain', 'Other'];
 const CATEGORY_IMAGES = {
@@ -9,8 +10,127 @@ const CATEGORY_IMAGES = {
   Other: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=600'
 };
 
+const PRODUCE_RULES = [
+  { pattern: /\bapples?\b/i, image: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bbananas?\b/i, image: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\boranges?\b/i, image: 'https://images.unsplash.com/photo-1547514701-42782101795e?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bmango(es)?\b/i, image: 'https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bstrawberr(y|ies)\b/i, image: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bblueberr(y|ies)\b/i, image: 'https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\braspberr(y|ies)\b/i, image: 'https://images.unsplash.com/photo-1577069861033-55d04cec4efb?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bblackberr(y|ies)\b/i, image: 'https://images.unsplash.com/photo-1464306208223-e0b4495a5553?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bberr(y|ies)\b/i, image: 'https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bpotato(es)?\b/i, image: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\btomato(es)?\b/i, image: 'https://images.unsplash.com/photo-1595855759920-86582396756a?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bonion(s)?\b/i, image: 'https://images.unsplash.com/photo-1508747703725-719777637510?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bcarrot(s)?\b/i, image: 'https://images.unsplash.com/photo-1598170845058-32b996a6bd11?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bgarlic(s)?\b/i, image: 'https://images.unsplash.com/photo-1540148426945-6cf22a6b2383?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bgrapes?\b/i, image: 'https://images.unsplash.com/photo-1537640538966-79f369143f8f?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bpineapples?\b/i, image: 'https://images.unsplash.com/photo-1550258987-190a2d41a8ba?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\blemon(s)?\b/i, image: 'https://images.unsplash.com/photo-1590502593747-42a996133562?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\blime(s)?\b/i, image: 'https://images.unsplash.com/photo-1590502593747-42a996133562?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bspinach\b/i, image: 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bbroccoli\b/i, image: 'https://images.unsplash.com/photo-1452967712862-0cca1839ff27?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bcucumber(s)?\b/i, image: 'https://images.unsplash.com/photo-1449300079324-9643e4dc7dc9?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bwatermelon(s)?\b/i, image: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bpepper(s)?\b/i, image: 'https://images.unsplash.com/photo-1563565312-8235f7536ff6?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bchili(es|s)?\b/i, image: 'https://images.unsplash.com/photo-1588252399615-53846665c829?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bchillies\b/i, image: 'https://images.unsplash.com/photo-1588252399615-53846665c829?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\blettuce(s)?\b/i, image: 'https://images.unsplash.com/photo-1622484211148-716598e04041?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bcabbage(s)?\b/i, image: 'https://images.unsplash.com/photo-1592417817098-8f3d6eb19675?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bmushroom(s)?\b/i, image: 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bavocado(s)?\b/i, image: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bcorn(s)?\b/i, image: 'https://images.unsplash.com/photo-1551754626-787f2e1a499d?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bpapaya(s)?\b/i, image: 'https://images.unsplash.com/photo-1517282009859-f000ec3b26fe?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bpeach(es)?\b/i, image: 'https://images.unsplash.com/photo-1628840042765-356cda07504e?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bcherr(y|ies)\b/i, image: 'https://images.unsplash.com/photo-1527661591475-527312dd65f5?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bpears?\b/i, image: 'https://images.unsplash.com/photo-1601876819102-99560f772713?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bplums?\b/i, image: 'https://images.unsplash.com/photo-1599819811279-d5ad9cccf838?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bwheat\b/i, image: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\brice\b/i, image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bbarley\b/i, image: 'https://images.unsplash.com/photo-1531306728370-e2ebd9d7bb99?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bpumpkin(s)?\b/i, image: 'https://images.unsplash.com/photo-1506976785307-8732e854ad03?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\beggplant(s)?\b/i, image: 'https://images.unsplash.com/photo-1615485925600-97237c4fc1ec?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bbrinjal(s)?\b/i, image: 'https://images.unsplash.com/photo-1615485925600-97237c4fc1ec?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bcauliflower(s)?\b/i, image: 'https://images.unsplash.com/photo-1568584711075-3d021a7c3ec3?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bginger(s)?\b/i, image: 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bguava(s)?\b/i, image: 'https://images.unsplash.com/photo-1534444767776-8c159abd6850?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bpomegranate(s)?\b/i, image: 'https://images.unsplash.com/photo-1530983824131-0968e715655d?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bpea(s)?\b/i, image: 'https://images.unsplash.com/photo-1587570256549-6ee00912f21b?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bbeet(s)?\b/i, image: 'https://images.unsplash.com/photo-1528113517408-5ccb1ae8c62c?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bradish(es)?\b/i, image: 'https://images.unsplash.com/photo-1582515073490-39981397c445?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bbean(s)?\b/i, image: 'https://images.unsplash.com/photo-1550596334-7bb40a719f14?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bmint(s)?\b/i, image: 'https://images.unsplash.com/photo-1608797178974-15b35a61d121?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bbasil(s)?\b/i, image: 'https://images.unsplash.com/photo-1603036830722-e2bcfbb2d358?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bokra(s)?\b/i, image: 'https://images.unsplash.com/photo-1425543103986-22abb7d7e8d2?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bladyfinger(s)?\b/i, image: 'https://images.unsplash.com/photo-1425543103986-22abb7d7e8d2?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bcoriander\b/i, image: 'https://images.unsplash.com/photo-1608797178974-15b35a61d121?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bcilantro\b/i, image: 'https://images.unsplash.com/photo-1608797178974-15b35a61d121?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bzucchini(s)?\b/i, image: 'https://images.unsplash.com/photo-1557844352-761f2565b576?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bcourgette(s)?\b/i, image: 'https://images.unsplash.com/photo-1557844352-761f2565b576?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\basparagus\b/i, image: 'https://images.unsplash.com/photo-1515471209610-dae1c92d814e?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bcoconut(s)?\b/i, image: 'https://images.unsplash.com/photo-1543218024-57a70143c369?auto=format&fit=crop&q=80&w=600' },
+  { pattern: /\bkiwi(s)?\b/i, image: 'https://images.unsplash.com/photo-1585059895524-72359e061381?auto=format&fit=crop&q=80&w=600' }
+];
+
+const resolveProduceImage = (name, category) => {
+  if (!name) return CATEGORY_IMAGES[category] || CATEGORY_IMAGES.Other;
+  
+  for (const rule of PRODUCE_RULES) {
+    if (rule.pattern.test(name)) {
+      return rule.image;
+    }
+  }
+  
+  return CATEGORY_IMAGES[category] || CATEGORY_IMAGES.Other;
+};
+
+const resolveProduceCategory = (name) => {
+  if (!name) return 'Other';
+  const cleanName = name.toLowerCase().trim();
+  
+  const fruits = [
+    'apple', 'banana', 'orange', 'mango', 'strawberry', 'grapes', 'grape', 
+    'pineapple', 'lemon', 'lime', 'watermelon', 'avocado', 'papaya', 'peach', 
+    'cherry', 'berry', 'blueberry', 'raspberry', 'blackberry', 'pear', 'plum', 
+    'guava', 'pomegranate', 'kiwi', 'melon', 'apricot', 'fig', 'date', 'coconut'
+  ];
+  
+  const vegetables = [
+    'potato', 'tomato', 'onion', 'carrot', 'garlic', 'spinach', 'broccoli', 
+    'cucumber', 'pepper', 'chili', 'chillies', 'chilli', 'lettuce', 'cabbage', 'mushroom', 
+    'corn', 'pumpkin', 'eggplant', 'brinjal', 'cauliflower', 'ginger', 'pea', 'peas', 
+    'beet', 'radish', 'bean', 'beans', 'mint', 'basil', 'okra', 'ladyfinger', 'coriander', 
+    'cilantro', 'zucchini', 'courgette', 'asparagus', 'celery', 'kale', 'leek', 'turnip'
+  ];
+  
+  const grains = [
+    'wheat', 'rice', 'barley', 'grain', 'oats', 'oat', 'rye', 'millet', 'quinoa'
+  ];
+
+  for (const fruit of fruits) {
+    const regex = new RegExp('\\b' + fruit + 's?\\b', 'i');
+    if (regex.test(cleanName)) return 'Fruit';
+  }
+  
+  for (const veg of vegetables) {
+    const regex = new RegExp('\\b' + veg + 's?\\b', 'i');
+    if (regex.test(cleanName)) return 'Vegetable';
+  }
+  
+  for (const grain of grains) {
+    const regex = new RegExp('\\b' + grain + 's?\\b', 'i');
+    if (regex.test(cleanName)) return 'Grain';
+  }
+  
+  return 'Other';
+};
+
+
 const Farmer = ({ addToast }) => {
-  const [farmerName, setFarmerName] = useState(() => localStorage.getItem('farmer_name') || 'Farmer Bob');
+  const { user, token, triggerLogin } = useAuth();
+  
+  const farmerName = user?.name || '';
   const [farmerLocation, setFarmerLocation] = useState(() => localStorage.getItem('farmer_location') || 'Valley Springs Farm');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({ name: farmerName, location: farmerLocation });
@@ -33,20 +153,33 @@ const Farmer = ({ addToast }) => {
     imageUrl: ''
   });
 
+  // Sync profile form when user logs in or edits location
+  useEffect(() => {
+    if (user) {
+      setProfileForm({ name: user.name, location: farmerLocation });
+    }
+  }, [user, farmerLocation]);
+
   // Fetch products and orders
   useEffect(() => {
-    fetchProducts();
-    fetchOrders();
-  }, [farmerName]);
+    if (user && user.role === 'Farmer' && token) {
+      fetchProducts();
+      fetchOrders();
+    }
+  }, [user, token]);
 
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      // Fetch all products, then filter by this farmer
-      const response = await fetch('http://localhost:5001/api/products');
+      // Fetch only items listed by this authenticated farmer
+      const response = await fetch('http://localhost:5001/api/products/mine', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       const data = await response.json();
       if (response.ok) {
-        setProducts(data.filter(p => p.farmerName.toLowerCase() === farmerName.toLowerCase()));
+        setProducts(data);
       }
     } catch (err) {
       addToast('Error fetching products', 'error');
@@ -57,7 +190,11 @@ const Farmer = ({ addToast }) => {
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/orders');
+      const response = await fetch('http://localhost:5001/api/orders', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       const data = await response.json();
       if (response.ok) {
         // Filter orders containing items from this farmer
@@ -73,16 +210,14 @@ const Farmer = ({ addToast }) => {
 
   const handleProfileSave = (e) => {
     e.preventDefault();
-    if (!profileForm.name || !profileForm.location) {
-      addToast('Name and location are required', 'error');
+    if (!profileForm.location) {
+      addToast('Farm location is required', 'error');
       return;
     }
-    setFarmerName(profileForm.name);
     setFarmerLocation(profileForm.location);
-    localStorage.setItem('farmer_name', profileForm.name);
     localStorage.setItem('farmer_location', profileForm.location);
     setIsEditingProfile(false);
-    addToast('Farmer profile updated successfully', 'success');
+    addToast('Farm profile updated successfully', 'success');
   };
 
   const openAddModal = () => {
@@ -128,25 +263,28 @@ const Farmer = ({ addToast }) => {
       unit,
       quantity: parseInt(quantity),
       description,
-      imageUrl: imageUrl || CATEGORY_IMAGES[category],
-      farmerName,
+      imageUrl: imageUrl || resolveProduceImage(name, category),
       farmerLocation
     };
 
     try {
       let response;
       if (editingProduct) {
-        // Edit product
         response = await fetch(`http://localhost:5001/api/products/${editingProduct._id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
           body: JSON.stringify(payload)
         });
       } else {
-        // Create new product
         response = await fetch('http://localhost:5001/api/products', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
           body: JSON.stringify(payload)
         });
       }
@@ -168,7 +306,10 @@ const Farmer = ({ addToast }) => {
     if (!confirm('Are you sure you want to delete this listing?')) return;
     try {
       const response = await fetch(`http://localhost:5001/api/products/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
       if (response.ok) {
         addToast('Product listing deleted', 'success');
@@ -185,7 +326,10 @@ const Farmer = ({ addToast }) => {
     try {
       const response = await fetch(`http://localhost:5001/api/orders/${orderId}/status`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ status: nextStatus })
       });
       if (response.ok) {
@@ -198,6 +342,20 @@ const Farmer = ({ addToast }) => {
       addToast('Error updating status', 'error');
     }
   };
+
+  // Access check: only let logged-in Farmers inside
+  if (!user || user.role !== 'Farmer') {
+    return (
+      <div className="empty-placeholder" style={{ marginTop: '5rem', padding: '4rem 2.5rem' }}>
+        <ShieldAlert className="empty-placeholder-icon" style={{ color: 'var(--accent)', strokeWidth: 1.5 }} />
+        <h3>Farmer Dashboard Access Restricted</h3>
+        <p>You must be signed in with a Farmer account to add listings, manage stock, and process received customer orders.</p>
+        <button className="btn btn-primary" style={{ marginTop: '1.5rem' }} onClick={() => triggerLogin()}>
+          Sign In as Farmer
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div style={{ position: 'relative' }}>
@@ -244,19 +402,10 @@ const Farmer = ({ addToast }) => {
                 <input 
                   type="text" 
                   className="form-input" 
-                  value={profileForm.name} 
-                  onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
-                  placeholder="Farmer Name"
-                  style={{ background: 'white', color: 'var(--text-dark)', width: '250px' }}
-                  required
-                />
-                <input 
-                  type="text" 
-                  className="form-input" 
                   value={profileForm.location} 
                   onChange={(e) => setProfileForm({ ...profileForm, location: e.target.value })}
                   placeholder="Farm Location"
-                  style={{ background: 'white', color: 'var(--text-dark)', width: '250px' }}
+                  style={{ background: 'white', color: 'var(--text-dark)', width: '350px' }}
                   required
                 />
               </div>
@@ -343,7 +492,7 @@ const Farmer = ({ addToast }) => {
                     
                     <div className="card-footer">
                       <div className="price-tag">
-                        <span className="price-val">${Number(product.price).toFixed(2)}</span>
+                        <span className="price-val">₹{Number(product.price).toFixed(2)}</span>
                         <span className="price-unit">per {product.unit}</span>
                       </div>
                       <span className={`stock-tag ${product.quantity === 0 ? 'out' : product.quantity <= 10 ? 'low' : ''}`}>
@@ -386,7 +535,6 @@ const Farmer = ({ addToast }) => {
           ) : (
             <div className="order-list">
               {orders.map((order) => {
-                // Get only items belonging to this farmer
                 const farmerItems = order.items.filter(
                   item => item.farmerName.toLowerCase() === farmerName.toLowerCase()
                 );
@@ -427,14 +575,14 @@ const Farmer = ({ addToast }) => {
                       {farmerItems.map((item, idx) => (
                         <div key={idx} className="order-item-row">
                           <span>{item.name} <span style={{ color: 'var(--text-muted)', fontWeight: 'normal' }}>x{item.quantity}</span></span>
-                          <span style={{ fontWeight: 600 }}>${(item.price * item.quantity).toFixed(2)}</span>
+                          <span style={{ fontWeight: 600 }}>₹{(item.price * item.quantity).toFixed(2)}</span>
                         </div>
                       ))}
                     </div>
 
                     <div className="order-card-footer">
                       <div className="order-total-price">
-                        Your Order Earnings: <strong>${farmerSubtotal.toFixed(2)}</strong>
+                        Your Order Earnings: <strong>₹{farmerSubtotal.toFixed(2)}</strong>
                       </div>
 
                       {/* Status transitions */}
@@ -492,7 +640,15 @@ const Farmer = ({ addToast }) => {
                   type="text" 
                   className="form-input" 
                   value={productForm.name} 
-                  onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
+                  onChange={(e) => {
+                    const newName = e.target.value;
+                    const resolvedCat = resolveProduceCategory(newName);
+                    setProductForm({ 
+                      ...productForm, 
+                      name: newName,
+                      category: resolvedCat
+                    });
+                  }}
                   placeholder="Organic Strawberries, Fresh Spinach, etc."
                   required
                 />
@@ -500,14 +656,27 @@ const Farmer = ({ addToast }) => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">Category *</label>
-                  <select 
-                    className="form-input" 
-                    value={productForm.category}
-                    onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
-                  >
-                    {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                  </select>
+                  <label className="form-label">Category (Auto-detected)</label>
+                  <div style={{
+                    padding: '0.8rem',
+                    background: 'var(--bg-soft)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: 'var(--radius-md)',
+                    fontWeight: 600,
+                    color: 'var(--primary-dark)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    fontSize: '0.9rem'
+                  }}>
+                    <span style={{
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      background: productForm.category === 'Fruit' ? '#FBBC05' : productForm.category === 'Vegetable' ? '#34A853' : productForm.category === 'Grain' ? '#E28743' : '#777777'
+                    }}></span>
+                    {productForm.category}
+                  </div>
                 </div>
                 <div className="form-group">
                   <label className="form-label">Unit of Measure *</label>
@@ -524,7 +693,7 @@ const Farmer = ({ addToast }) => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">Price per Unit ($) *</label>
+                  <label className="form-label">Price per Unit (₹) *</label>
                   <input 
                     type="number" 
                     step="0.01"
@@ -560,8 +729,23 @@ const Farmer = ({ addToast }) => {
                   placeholder="https://example.com/fresh-produce.jpg"
                 />
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  If left empty, a high-quality category default image will be automatically assigned.
+                  If left empty, a high-quality produce or category image will be automatically resolved.
                 </span>
+                
+                {/* Live Image Preview Card */}
+                <div style={{ marginTop: '0.8rem', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.6rem', border: '1px dashed var(--border-color)', borderRadius: '8px', background: '#fcfcfc' }}>
+                  <img 
+                    src={productForm.imageUrl || resolveProduceImage(productForm.name, productForm.category)} 
+                    alt="Produce Preview"
+                    style={{ width: '80px', height: '60px', borderRadius: '6px', objectFit: 'cover', border: '1px solid var(--border-color)' }}
+                  />
+                  <div>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 600, display: 'block', color: 'var(--text-dark)' }}>Live Image Preview</span>
+                    <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                      {productForm.imageUrl ? 'Using custom URL' : `Resolved: ${productForm.name ? 'matching produce name' : 'category fallback'}`}
+                    </span>
+                  </div>
+                </div>
               </div>
 
               <div className="form-group">

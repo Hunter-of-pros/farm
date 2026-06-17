@@ -152,7 +152,7 @@ const Consumer = ({ cart, addToCart, addToast }) => {
                   
                   <div className="card-footer" style={{ marginBottom: '1.25rem' }}>
                     <div className="price-tag">
-                      <span className="price-val">${Number(product.price).toFixed(2)}</span>
+                      <span className="price-val">₹{Number(product.price).toFixed(2)}</span>
                       <span className="price-unit">per {product.unit}</span>
                     </div>
                     <span className={`stock-tag ${isOutOfStock ? 'out' : product.quantity <= 10 ? 'low' : ''}`}>
@@ -227,7 +227,7 @@ const Consumer = ({ cart, addToCart, addToast }) => {
                   <div>
                     <span style={{ fontSize: '0.8rem', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block' }}>Unit Price</span>
                     <strong style={{ fontSize: '1.5rem', color: 'var(--primary-dark)', fontFamily: 'Outfit, sans-serif' }}>
-                      ${Number(detailedProduct.price).toFixed(2)} <span style={{ fontSize: '0.9rem', fontWeight: 'normal' }}>/ {detailedProduct.unit}</span>
+                      ₹{Number(detailedProduct.price).toFixed(2)} <span style={{ fontSize: '0.9rem', fontWeight: 'normal' }}>/ {detailedProduct.unit}</span>
                     </strong>
                   </div>
                   <div>

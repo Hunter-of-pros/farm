@@ -4,6 +4,7 @@ import { AlertCircle } from 'lucide-react';
 import Navbar from './components/Navbar';
 import Cart from './components/Cart';
 import { ToastContainer } from './components/Toast';
+import AuthModal from './components/AuthModal';
 import Landing from './pages/Landing';
 import Farmer from './pages/Farmer';
 import Consumer from './pages/Consumer';
@@ -50,60 +51,58 @@ function App() {
   };
 
   const addToCart = (product) => {
-    setCart((prevCart) => {
-      const existingIdx = prevCart.findIndex((item) => item.productId === product.productId);
+    const existingItem = cart.find((item) => item.productId === product.productId);
+    
+    if (existingItem) {
+      const newQty = existingItem.quantity + 1;
       
-      if (existingIdx > -1) {
-        const updatedCart = [...prevCart];
-        const newQty = updatedCart[existingIdx].quantity + 1;
-        
-        if (newQty > product.maxQuantity) {
-          addToast(`Cannot add more. Limit of ${product.maxQuantity} reached for this item.`, 'warning');
-          return prevCart;
-        }
-        
-        updatedCart[existingIdx].quantity = newQty;
-        addToast(`Incremented quantity of ${product.name} to ${newQty}`, 'success');
-        return updatedCart;
-      } else {
-        addToast(`Added ${product.name} to your cart`, 'success');
-        return [...prevCart, { ...product, quantity: 1 }];
+      if (newQty > product.maxQuantity) {
+        addToast(`Cannot add more. Limit of ${product.maxQuantity} reached for this item.`, 'warning');
+        return;
       }
-    });
+      
+      setCart((prevCart) =>
+        prevCart.map((item) =>
+          item.productId === product.productId ? { ...item, quantity: newQty } : item
+        )
+      );
+      addToast(`Incremented quantity of ${product.name} to ${newQty}`, 'success');
+    } else {
+      setCart((prevCart) => [...prevCart, { ...product, quantity: 1 }]);
+      addToast(`Added ${product.name} to your cart`, 'success');
+    }
   };
 
   const updateQuantity = (productId, delta) => {
-    setCart((prevCart) => {
-      const existingIdx = prevCart.findIndex((item) => item.productId === productId);
-      if (existingIdx === -1) return prevCart;
+    const currentItem = cart.find((item) => item.productId === productId);
+    if (!currentItem) return;
 
-      const updatedCart = [...prevCart];
-      const currentItem = updatedCart[existingIdx];
-      const newQty = currentItem.quantity + delta;
+    const newQty = currentItem.quantity + delta;
 
-      if (newQty <= 0) {
-        addToast(`Removed ${currentItem.name} from cart`, 'success');
-        return prevCart.filter((item) => item.productId !== productId);
-      }
+    if (newQty <= 0) {
+      setCart((prevCart) => prevCart.filter((item) => item.productId !== productId));
+      addToast(`Removed ${currentItem.name} from cart`, 'success');
+      return;
+    }
 
-      if (newQty > currentItem.maxQuantity) {
-        addToast(`Cannot add more. Only ${currentItem.maxQuantity} available.`, 'warning');
-        return prevCart;
-      }
+    if (newQty > currentItem.maxQuantity) {
+      addToast(`Cannot add more. Only ${currentItem.maxQuantity} available.`, 'warning');
+      return;
+    }
 
-      updatedCart[existingIdx].quantity = newQty;
-      return updatedCart;
-    });
+    setCart((prevCart) =>
+      prevCart.map((item) =>
+        item.productId === productId ? { ...item, quantity: newQty } : item
+      )
+    );
   };
 
   const removeFromCart = (productId) => {
-    setCart((prevCart) => {
-      const item = prevCart.find((i) => i.productId === productId);
-      if (item) {
-        addToast(`Removed ${item.name} from cart`, 'success');
-      }
-      return prevCart.filter((item) => item.productId !== productId);
-    });
+    const item = cart.find((i) => i.productId === productId);
+    if (item) {
+      setCart((prevCart) => prevCart.filter((i) => i.productId !== productId));
+      addToast(`Removed ${item.name} from cart`, 'success');
+    }
   };
 
   const clearCart = () => {
@@ -159,6 +158,7 @@ function App() {
         />
 
         <ToastContainer toasts={toasts} removeToast={removeToast} />
+        <AuthModal />
       </div>
     </BrowserRouter>
   );

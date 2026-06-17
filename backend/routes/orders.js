@@ -2,24 +2,38 @@ const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
 const Product = require('../models/Product');
+const authMiddleware = require('../middleware/auth');
 
-// Get all orders (for dashboards to read and filter)
-router.get('/', async (req, res) => {
+// Get all orders (secured)
+router.get('/', authMiddleware, async (req, res) => {
   try {
     const orders = await Order.find();
+    
+    // Farmers can see all orders (they filter by their farm items in frontend)
+    // Consumers should only see their own orders
+    if (req.user.role === 'Consumer') {
+      const consumerOrders = orders.filter(o => o.customerEmail.toLowerCase() === req.user.email.toLowerCase());
+      return res.json(consumerOrders);
+    }
+    
     res.json(orders);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// Update order status (Pending -> Shipped -> Delivered)
-router.put('/:id/status', async (req, res) => {
+// Update order status (Farmer only)
+router.put('/:id/status', authMiddleware, async (req, res) => {
   try {
+    if (req.user.role !== 'Farmer') {
+      return res.status(403).json({ message: 'Access denied. Only Farmers can update order status.' });
+    }
+
     const { status } = req.body;
     if (!['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'].includes(status)) {
       return res.status(400).json({ message: 'Invalid order status' });
     }
+    
     const updatedOrder = await Order.findByIdAndUpdate(
       req.params.id,
       { status }
@@ -33,16 +47,16 @@ router.put('/:id/status', async (req, res) => {
   }
 });
 
-// Create a new order (Checkout)
-router.post('/', async (req, res) => {
+// Create a new order (Secured checkout)
+router.post('/', authMiddleware, async (req, res) => {
   try {
-    const { customerName, customerPhone, customerAddress, customerEmail, items, totalAmount } = req.body;
+    const { customerPhone, customerAddress, items, totalAmount } = req.body;
     
-    if (!customerName || !customerPhone || !customerAddress || !items || !items.length) {
+    if (!customerPhone || !customerAddress || !items || !items.length) {
       return res.status(400).json({ message: 'Missing required order details' });
     }
     
-    // 1. Verify stock availability and prepare updates
+    // Verify stock availability
     const updates = [];
     for (let item of items) {
       const product = await Product.findById(item.productId);
@@ -57,18 +71,18 @@ router.post('/', async (req, res) => {
       updates.push({ productId: item.productId, decrementBy: -item.quantity });
     }
     
-    // 2. Perform updates to product stock levels
+    // Decrement stock
     for (let u of updates) {
       await Product.findByIdAndUpdate(u.productId, { $inc: { quantity: u.decrementBy } });
     }
     
-    // 3. Create the order record
+    // Create order, using verified user details
     const newOrder = await Order.create({
       items,
-      customerName,
+      customerName: req.user.name,
+      customerEmail: req.user.email,
       customerPhone,
       customerAddress,
-      customerEmail: customerEmail || '',
       totalAmount: Number(totalAmount),
       status: 'Pending'
     });
