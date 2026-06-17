@@ -115,14 +115,6 @@ function App() {
   return (
     <BrowserRouter>
       <div className="app-container">
-        {/* Render a notice banner if database is running in local JSON fallback mode */}
-        {dbMode && dbMode.includes('Fallback') && (
-          <div className="db-mode-banner">
-            <AlertCircle size={16} />
-            <span>Note: Backend is running in <strong>JSON Fallback Local Storage Mode</strong> (MongoDB connection was not detected). App remains fully operational!</span>
-          </div>
-        )}
-
         <Navbar 
           cartCount={totalCartCount} 
           onCartClick={() => setIsCartOpen(true)} 
