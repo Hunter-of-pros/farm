@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, User, MapPin, ClipboardList, Package, Truck, CheckCircle2, ShoppingBag, ShieldAlert } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../config';
 
 const CATEGORIES = ['Vegetable', 'Fruit', 'Grain', 'Other'];
 const CATEGORY_IMAGES = {
@@ -171,8 +172,7 @@ const Farmer = ({ addToast }) => {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      // Fetch only items listed by this authenticated farmer
-      const response = await fetch('http://localhost:5001/api/products/mine', {
+      const response = await fetch(`${API_BASE_URL}/api/products/mine`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -190,7 +190,7 @@ const Farmer = ({ addToast }) => {
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/orders', {
+      const response = await fetch(`${API_BASE_URL}/api/orders`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -270,7 +270,7 @@ const Farmer = ({ addToast }) => {
     try {
       let response;
       if (editingProduct) {
-        response = await fetch(`http://localhost:5001/api/products/${editingProduct._id}`, {
+        response = await fetch(`${API_BASE_URL}/api/products/${editingProduct._id}`, {
           method: 'PUT',
           headers: { 
             'Content-Type': 'application/json',
@@ -279,7 +279,7 @@ const Farmer = ({ addToast }) => {
           body: JSON.stringify(payload)
         });
       } else {
-        response = await fetch('http://localhost:5001/api/products', {
+        response = await fetch(`${API_BASE_URL}/api/products`, {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
@@ -305,7 +305,7 @@ const Farmer = ({ addToast }) => {
   const handleDeleteProduct = async (id) => {
     if (!confirm('Are you sure you want to delete this listing?')) return;
     try {
-      const response = await fetch(`http://localhost:5001/api/products/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/products/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -324,7 +324,7 @@ const Farmer = ({ addToast }) => {
 
   const handleOrderStatusUpdate = async (orderId, nextStatus) => {
     try {
-      const response = await fetch(`http://localhost:5001/api/orders/${orderId}/status`, {
+      const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}/status`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',

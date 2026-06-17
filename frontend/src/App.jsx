@@ -8,6 +8,7 @@ import AuthModal from './components/AuthModal';
 import Landing from './pages/Landing';
 import Farmer from './pages/Farmer';
 import Consumer from './pages/Consumer';
+import { API_BASE_URL } from './config';
 import './App.css';
 
 function App() {
@@ -28,7 +29,7 @@ function App() {
   useEffect(() => {
     const checkHealth = async () => {
       try {
-        const res = await fetch('http://localhost:5001/api/health');
+        const res = await fetch(`${API_BASE_URL}/api/health`);
         if (res.ok) {
           const data = await res.json();
           setDbMode(data.databaseMode);

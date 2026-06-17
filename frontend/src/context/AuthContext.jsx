@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
+import { API_BASE_URL } from '../config';
 
 const AuthContext = createContext(null);
 
@@ -19,7 +20,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
-        const res = await fetch('http://localhost:5001/api/auth/me', {
+        const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -53,7 +54,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const sendOtp = async (username, email) => {
-    const res = await fetch('http://localhost:5001/api/auth/send-otp', {
+    const res = await fetch(`${API_BASE_URL}/api/auth/send-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, email })
@@ -64,7 +65,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const verifyOtp = async (username, email, otp, name, password, role) => {
-    const res = await fetch('http://localhost:5001/api/auth/verify-otp', {
+    const res = await fetch(`${API_BASE_URL}/api/auth/verify-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, email, otp, name, password, role })
@@ -87,7 +88,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (username, password) => {
-    const res = await fetch('http://localhost:5001/api/auth/login', {
+    const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
@@ -110,7 +111,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const forgotPassword = async (identity) => {
-    const res = await fetch('http://localhost:5001/api/auth/forgot-password', {
+    const res = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ identity })
@@ -121,7 +122,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const resetPassword = async (email, otp, newPassword) => {
-    const res = await fetch('http://localhost:5001/api/auth/reset-password', {
+    const res = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, otp, newPassword })

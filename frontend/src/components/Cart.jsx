@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Trash2, ArrowLeft, ShoppingCart, CreditCard, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../config';
 
 const Cart = ({ isOpen, onClose, cart, updateQuantity, removeFromCart, clearCart, addToast }) => {
   const { user, token, triggerLogin } = useAuth();
@@ -60,7 +61,7 @@ const Cart = ({ isOpen, onClose, cart, updateQuantity, removeFromCart, clearCart
         farmerName: item.farmerName
       }));
 
-      const response = await fetch('http://localhost:5001/api/orders', {
+      const response = await fetch(`${API_BASE_URL}/api/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

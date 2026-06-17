@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, MapPin, ShoppingCart, Info, Sparkles, SlidersHorizontal } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 const CATEGORIES = ['All', 'Vegetable', 'Fruit', 'Grain', 'Other'];
 
@@ -19,7 +20,7 @@ const Consumer = ({ cart, addToCart, addToast }) => {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5001/api/products');
+      const response = await fetch(`${API_BASE_URL}/api/products`);
       const data = await response.json();
       if (response.ok) {
         setProducts(data);
