@@ -333,7 +333,7 @@ const Landing = () => {
             </div>
             <div className="floating-card-info">
               <h5>Direct Track</h5>
-              <p>No storage warehouses</p>
+              <p>Instant farmer connection</p>
             </div>
           </div>
 
