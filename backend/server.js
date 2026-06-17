@@ -40,11 +40,22 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Serve frontend assets if built (for production delivery)
-if (process.env.NODE_ENV === 'production') {
+// Serve frontend assets if built (for production delivery, but not on Vercel where frontend is hosted separately)
+if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
   app.use(express.static(path.join(__dirname, '../frontend/dist')));
   app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+  });
+} else {
+  app.get('/', (req, res) => {
+    res.json({
+      message: 'Welcome to the Farm-to-Consumer API',
+      status: 'online',
+      endpoints: {
+        products: '/api/products',
+        health: '/api/health'
+      }
+    });
   });
 }
 
