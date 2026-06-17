@@ -129,27 +129,10 @@ const Landing = () => {
   const navigate = useNavigate();
   const visualRef = useRef(null);
 
-  // Live farm listings simulation ticker data
-  const feedItems = [
-    { text: '🥦 Oakwood Organic Farm harvested 12kg Fresh Broccoli', location: '1.2 mi' },
-    { text: '🍎 Honeycrisp Apples listed by Valley Orchards', location: '3.4 mi' },
-    { text: '🏡 Sarah purchased fresh Honeyberries from John\'s Farm', location: 'Direct Match' },
-    { text: '🥕 15 packs of Baby Carrots added by Green Gardeners', location: '0.8 mi' },
-    { text: '🍯 Sweet Hill Apiary listed raw Honeycomb jars', location: '2.1 mi' },
-    { text: '🥛 Meadow Dairy added Raw Goat Milk bottles', location: '4.0 mi' },
-    { text: '🍓 David ordered 3kg Fresh Picked Strawberries', location: 'Direct Match' }
-  ];
-
   useEffect(() => {
     const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
 
     // Stagger reveal of badges, texts and timeline cards
-    tl.fromTo(
-      '.ticker-container',
-      { opacity: 0, y: -15 },
-      { opacity: 1, y: 0, duration: 0.6 }
-    );
-
     tl.fromTo(
       '.landing-badge',
       { opacity: 0, y: -10 },
@@ -193,6 +176,13 @@ const Landing = () => {
     );
 
     tl.fromTo(
+      '.path-dash',
+      { strokeDasharray: '1000', strokeDashoffset: '1000' },
+      { strokeDashoffset: '0', duration: 2.2, ease: 'power2.inOut' },
+      '-=0.8'
+    );
+
+    tl.fromTo(
       '.portal-card',
       { opacity: 0, y: 35 },
       { opacity: 1, y: 0, duration: 0.8, stagger: 0.2 },
@@ -227,32 +217,16 @@ const Landing = () => {
     <div className="landing-container">
       <CanvasBackground />
 
-      {/* Simulated Live Ticker Feed */}
-      <div className="ticker-container">
-        <div className="ticker-wrapper">
-          {/* Double list to ensure smooth continuous scroll */}
-          {[...feedItems, ...feedItems].map((item, idx) => (
-            <span className="ticker-item" key={idx}>
-              <span className="ticker-dot"></span>
-              {item.text} 
-              <span style={{ fontSize: '0.75rem', opacity: 0.6, background: 'rgba(45, 90, 39, 0.1)', padding: '0.1rem 0.4rem', borderRadius: '4px', marginLeft: '6px' }}>
-                {item.location}
-              </span>
-            </span>
-          ))}
-        </div>
-      </div>
-
       {/* Hero Section */}
-      <div className="hero-layout">
+      <div className="hero-layout" style={{ marginTop: '0rem' }}>
         <div className="hero-content">
           <span className="landing-badge">
             <Leaf size={14} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} /> 
             Pure Direct Connection
           </span>
           <h1 className="landing-title">
-            <span>Skip the Middleman.</span>
-            <span>Taste Peak Freshness.</span>
+            <span>Direct From the Harvest.</span>
+            <span>Pure Freshness, Direct Match.</span>
           </h1>
           <p className="landing-subtitle">
             An organic bridge matching local growers directly with conscious community buyers. Get your vegetables, fruits, and honey harvested fresh, at prices that support the soil.
