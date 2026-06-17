@@ -4,7 +4,7 @@ import { API_BASE_URL } from '../config';
 
 const CATEGORIES = ['All', 'Vegetable', 'Fruit', 'Grain', 'Other'];
 
-const Consumer = ({ cart, addToCart, addToast }) => {
+const Consumer = ({ cart, addToCart, addToast, refreshTrigger }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -15,7 +15,7 @@ const Consumer = ({ cart, addToCart, addToast }) => {
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [refreshTrigger]);
 
   const fetchProducts = async () => {
     setLoading(true);

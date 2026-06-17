@@ -19,6 +19,7 @@ function App() {
   const [toasts, setToasts] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [dbMode, setDbMode] = useState('');
+  const [productsRefreshTrigger, setProductsRefreshTrigger] = useState(0);
 
   // Persist cart to localStorage
   useEffect(() => {
@@ -134,6 +135,7 @@ function App() {
                   cart={cart} 
                   addToCart={addToCart} 
                   addToast={addToast} 
+                  refreshTrigger={productsRefreshTrigger}
                 />
               } 
             />
@@ -148,6 +150,7 @@ function App() {
           removeFromCart={removeFromCart} 
           clearCart={clearCart} 
           addToast={addToast} 
+          onCheckoutSuccess={() => setProductsRefreshTrigger(t => t + 1)}
         />
 
         <ToastContainer toasts={toasts} removeToast={removeToast} />

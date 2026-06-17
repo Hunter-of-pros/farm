@@ -87,7 +87,7 @@ const resolveProduceImage = (name, category) => {
 };
 
 const resolveProduceCategory = (name) => {
-  if (!name) return 'Other';
+  if (!name) return '';
   const cleanName = name.toLowerCase().trim();
   
   const fruits = [
@@ -127,6 +127,18 @@ const resolveProduceCategory = (name) => {
   return 'Other';
 };
 
+const parseStockInput = (input) => {
+  if (!input) return { quantity: 0, unit: 'kg' };
+  const clean = input.trim();
+  const match = clean.match(/^(\d+(?:\.\d+)?)\s*(.*)$/);
+  if (match) {
+    const quantity = parseFloat(match[1]) || 0;
+    const unit = match[2].trim() || 'kg';
+    return { quantity, unit };
+  }
+  return { quantity: 0, unit: 'kg' };
+};
+
 
 const Farmer = ({ addToast }) => {
   const { user, token, triggerLogin } = useAuth();
@@ -146,10 +158,9 @@ const Farmer = ({ addToast }) => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [productForm, setProductForm] = useState({
     name: '',
-    category: 'Vegetable',
+    category: '',
     price: '',
-    unit: 'kg',
-    quantity: '',
+    stockInput: '',
     description: '',
     imageUrl: ''
   });
@@ -224,10 +235,9 @@ const Farmer = ({ addToast }) => {
     setEditingProduct(null);
     setProductForm({
       name: '',
-      category: 'Vegetable',
+      category: '',
       price: '',
-      unit: 'kg',
-      quantity: '',
+      stockInput: '',
       description: '',
       imageUrl: ''
     });
@@ -240,8 +250,7 @@ const Farmer = ({ addToast }) => {
       name: product.name,
       category: product.category,
       price: product.price,
-      unit: product.unit,
-      quantity: product.quantity,
+      stockInput: `${product.quantity} ${product.unit}`,
       description: product.description || '',
       imageUrl: product.imageUrl || ''
     });
@@ -250,20 +259,22 @@ const Farmer = ({ addToast }) => {
 
   const handleProductSubmit = async (e) => {
     e.preventDefault();
-    const { name, category, price, unit, quantity, description, imageUrl } = productForm;
-    if (!name || !price || !quantity) {
-      addToast('Please enter all required fields', 'error');
+    const { name, category, price, stockInput, description, imageUrl } = productForm;
+    const { quantity, unit } = parseStockInput(stockInput);
+
+    if (!name || !price || !stockInput || quantity <= 0) {
+      addToast('Please enter all required fields with a valid stock (e.g., 50 kg)', 'error');
       return;
     }
 
     const payload = {
       name,
-      category,
+      category: category || 'Other',
       price: parseFloat(price),
       unit,
-      quantity: parseInt(quantity),
+      quantity,
       description,
-      imageUrl: imageUrl || resolveProduceImage(name, category),
+      imageUrl: imageUrl || resolveProduceImage(name, category || 'Other'),
       farmerLocation
     };
 
@@ -654,40 +665,27 @@ const Farmer = ({ addToast }) => {
                 />
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">Category (Auto-detected)</label>
-                  <div style={{
-                    padding: '0.8rem',
-                    background: 'var(--bg-soft)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: 'var(--radius-md)',
-                    fontWeight: 600,
-                    color: 'var(--primary-dark)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    fontSize: '0.9rem'
-                  }}>
-                    <span style={{
-                      width: '8px',
-                      height: '8px',
-                      borderRadius: '50%',
-                      background: productForm.category === 'Fruit' ? '#FBBC05' : productForm.category === 'Vegetable' ? '#34A853' : productForm.category === 'Grain' ? '#E28743' : '#777777'
-                    }}></span>
-                    {productForm.category}
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Unit of Measure *</label>
-                  <input 
-                    type="text" 
-                    className="form-input" 
-                    value={productForm.unit} 
-                    onChange={(e) => setProductForm({ ...productForm, unit: e.target.value })}
-                    placeholder="kg, bunch, piece, box"
-                    required
-                  />
+              <div className="form-group">
+                <label className="form-label">Category (Auto-detected)</label>
+                <div style={{
+                  padding: '0.8rem',
+                  background: 'var(--bg-soft)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: 'var(--radius-md)',
+                  fontWeight: 600,
+                  color: 'var(--primary-dark)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  fontSize: '0.9rem'
+                }}>
+                  <span style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: productForm.category === 'Fruit' ? '#FBBC05' : productForm.category === 'Vegetable' ? '#34A853' : productForm.category === 'Grain' ? '#E28743' : '#777777'
+                  }}></span>
+                  {productForm.category || 'Type name to detect...'}
                 </div>
               </div>
 
@@ -706,14 +704,13 @@ const Farmer = ({ addToast }) => {
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Available Stock (Qty) *</label>
+                  <label className="form-label">Available Stock (e.g. 50 kg, 10 bunch, 100 pieces) *</label>
                   <input 
-                    type="number" 
-                    min="1"
+                    type="text" 
                     className="form-input" 
-                    value={productForm.quantity} 
-                    onChange={(e) => setProductForm({ ...productForm, quantity: e.target.value })}
-                    placeholder="50"
+                    value={productForm.stockInput} 
+                    onChange={(e) => setProductForm({ ...productForm, stockInput: e.target.value })}
+                    placeholder="50 kg"
                     required
                   />
                 </div>

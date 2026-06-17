@@ -3,7 +3,7 @@ import { X, Trash2, ArrowLeft, ShoppingCart, CreditCard, Loader2 } from 'lucide-
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../config';
 
-const Cart = ({ isOpen, onClose, cart, updateQuantity, removeFromCart, clearCart, addToast }) => {
+const Cart = ({ isOpen, onClose, cart, updateQuantity, removeFromCart, clearCart, addToast, onCheckoutSuccess }) => {
   const { user, token, triggerLogin } = useAuth();
   
   const [isCheckout, setIsCheckout] = useState(false);
@@ -83,6 +83,9 @@ const Cart = ({ isOpen, onClose, cart, updateQuantity, removeFromCart, clearCart
 
       addToast('Order placed successfully! Fresh farm goods are on their way.', 'success');
       clearCart();
+      if (onCheckoutSuccess) {
+        onCheckoutSuccess();
+      }
       setIsCheckout(false);
       setFormData({ name: user?.name || '', phone: '', email: user?.email || '', address: '' });
       onClose();
