@@ -13,17 +13,41 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/farmDirect
 app.use(cors());
 app.use(express.json());
 
-// Attempt MongoDB Connection
-mongoose.connect(MONGO_URI)
-  .then(() => {
+// Database connection utility for serverless environment compatibility
+async function ensureDbConnected() {
+  if (mongoose.connection.readyState === 1) {
+    setConnected(true);
+    return;
+  }
+  
+  if (mongoose.connection.readyState === 2) {
+    await new Promise((resolve) => {
+      mongoose.connection.once('open', resolve);
+      mongoose.connection.once('error', resolve);
+    });
+    setConnected(mongoose.connection.readyState === 1);
+    return;
+  }
+
+  try {
+    await mongoose.connect(MONGO_URI);
     console.log('Successfully connected to MongoDB.');
     setConnected(true);
-  })
-  .catch((err) => {
+  } catch (err) {
     console.warn('MongoDB connection failed. Starting database in local JSON fallback mode.');
     console.warn(`Connection error detail: ${err.message}`);
     setConnected(false);
-  });
+  }
+}
+
+// Initial connection attempt
+ensureDbConnected();
+
+// Global database connection middleware (ensures serverless requests await connection before execution)
+app.use(async (req, res, next) => {
+  await ensureDbConnected();
+  next();
+});
 
 // API Routes
 app.use('/api/products', require('./routes/products'));
