@@ -1,0 +1,11 @@
+{
+  "name": "farm-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Farm-to-Consumer direct marketplace monorepo",
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "start": "cd backend && npm start",
+    "dev": "cd frontend && npm run dev"
+  }
+}
