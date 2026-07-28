@@ -107,6 +107,11 @@ class JSONModel {
       for (let key in update.$inc) {
         updatedItem[key] = (updatedItem[key] || 0) + update.$inc[key];
       }
+      for (let key in update) {
+        if (key !== '$inc') {
+          updatedItem[key] = update[key];
+        }
+      }
     } else {
       updatedItem = { ...updatedItem, ...update };
     }

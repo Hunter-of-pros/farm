@@ -130,6 +130,7 @@ const productSchema = new mongoose.Schema({
   price: { type: Number, required: true },
   unit: { type: String, default: 'kg' },
   quantity: { type: Number, required: true },
+  soldCount: { type: Number, default: 0 },
   description: { type: String },
   imageUrl: { type: String },
   farmerName: { type: String, required: true },
@@ -145,9 +146,15 @@ const Product = {
   resolveImage: resolveProduceImage,
   find: async (query) => {
     if (getConnected()) {
-      return MongoProduct.find(query).sort({ createdAt: -1 });
+      return MongoProduct.find(query).sort({ soldCount: -1, createdAt: -1 });
     }
-    return JsonProduct.find(query);
+    const items = await JsonProduct.find(query);
+    return items.sort((a, b) => {
+      const soldA = a.soldCount || 0;
+      const soldB = b.soldCount || 0;
+      if (soldB !== soldA) return soldB - soldA;
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
   },
   findById: async (id) => {
     if (getConnected()) {
@@ -161,6 +168,9 @@ const Product = {
     }
     if (!data.imageUrl) {
       data.imageUrl = resolveProduceImage(data.name, data.category);
+    }
+    if (data.soldCount === undefined) {
+      data.soldCount = 0;
     }
     if (getConnected()) {
       return MongoProduct.create(data);

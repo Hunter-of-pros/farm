@@ -71,9 +71,14 @@ router.post('/', authMiddleware, async (req, res) => {
       updates.push({ productId: item.productId, decrementBy: -item.quantity });
     }
     
-    // Decrement stock
+    // Decrement stock & increment soldCount for best-seller ranking
     for (let u of updates) {
-      await Product.findByIdAndUpdate(u.productId, { $inc: { quantity: u.decrementBy } });
+      await Product.findByIdAndUpdate(u.productId, { 
+        $inc: { 
+          quantity: u.decrementBy,
+          soldCount: Math.abs(u.decrementBy)
+        } 
+      });
     }
     
     // Create order, using verified user details

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, ShoppingCart, Info, Sparkles, SlidersHorizontal } from 'lucide-react';
+import { Search, MapPin, ShoppingCart, Info, Flame, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 
 const CATEGORIES = ['All', 'Vegetable', 'Fruit', 'Grain', 'Other'];
@@ -9,6 +9,7 @@ const Consumer = ({ cart, addToCart, addToast, refreshTrigger }) => {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [sortBy, setSortBy] = useState('bestsellers'); // 'bestsellers', 'newest', 'price_low', 'price_high'
 
   // Modal details state
   const [detailedProduct, setDetailedProduct] = useState(null);
@@ -32,14 +33,30 @@ const Consumer = ({ cart, addToCart, addToast, refreshTrigger }) => {
     }
   };
 
-  // Filter products locally for instantaneous UI updates
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          product.farmerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          (product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  // Determine top sales benchmark to identify best sellers
+  const maxSoldInCatalog = Math.max(0, ...products.map(p => p.soldCount || 0));
+
+  // Filter and sort products (Best Sellers appear FIRST by default)
+  const filteredProducts = products
+    .filter(product => {
+      const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            product.farmerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            (product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'bestsellers') {
+        const soldA = a.soldCount || 0;
+        const soldB = b.soldCount || 0;
+        if (soldB !== soldA) return soldB - soldA; // Highest selling first
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      }
+      if (sortBy === 'price_low') return a.price - b.price;
+      if (sortBy === 'price_high') return b.price - a.price;
+      if (sortBy === 'newest') return new Date(b.createdAt) - new Date(a.createdAt);
+      return 0;
+    });
 
   const getCartQuantity = (productId) => {
     const item = cart.find(i => i.productId === productId);
@@ -90,9 +107,9 @@ const Consumer = ({ cart, addToCart, addToast, refreshTrigger }) => {
       </div>
 
       {/* Toolbar / Search & Filter */}
-      <div className="toolbar-container">
+      <div className="toolbar-container" style={{ flexWrap: 'wrap', gap: '1rem' }}>
         {/* Search */}
-        <div className="search-box">
+        <div className="search-box" style={{ flex: '1 1 280px' }}>
           <Search size={18} className="search-icon" />
           <input 
             type="text" 
@@ -104,7 +121,7 @@ const Consumer = ({ cart, addToCart, addToast, refreshTrigger }) => {
         </div>
 
         {/* Categories filters */}
-        <div className="filter-categories">
+        <div className="filter-categories" style={{ flex: '1 1 auto' }}>
           {CATEGORIES.map(category => (
             <button
               key={category}
@@ -114,6 +131,22 @@ const Consumer = ({ cart, addToCart, addToast, refreshTrigger }) => {
               {category === 'All' ? 'All Produce' : `${category}s`}
             </button>
           ))}
+        </div>
+
+        {/* Sort Selector */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'var(--bg-main)', padding: '0.4rem 0.8rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+          <ArrowUpDown size={15} style={{ color: 'var(--primary)' }} />
+          <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)' }}>Sort:</span>
+          <select 
+            value={sortBy} 
+            onChange={(e) => setSortBy(e.target.value)}
+            style={{ border: 'none', background: 'transparent', fontWeight: 700, color: 'var(--primary-dark)', fontSize: '0.85rem', cursor: 'pointer', outline: 'none' }}
+          >
+            <option value="bestsellers">🔥 Best Sellers (Most Sold)</option>
+            <option value="newest">🌱 Newest Harvest</option>
+            <option value="price_low">₹ Price: Low to High</option>
+            <option value="price_high">₹ Price: High to Low</option>
+          </select>
         </div>
       </div>
 
@@ -132,20 +165,30 @@ const Consumer = ({ cart, addToCart, addToast, refreshTrigger }) => {
             const quantityInCart = getCartQuantity(product._id);
             const isOutOfStock = product.quantity === 0;
             const isLimitReached = quantityInCart >= product.quantity;
+            const soldCount = product.soldCount || 0;
+            const isBestSeller = soldCount > 0 && (soldCount === maxSoldInCatalog || soldCount >= 10);
 
             return (
-              <div key={product._id} className="card">
+              <div key={product._id} className="card" style={{ position: 'relative' }}>
                 <div className="card-image-wrapper">
                   <img 
                     src={product.imageUrl} 
                     alt={product.name} 
                     className="card-image"
                   />
+                  {isBestSeller && (
+                    <span className="bestseller-badge">
+                      <Flame size={13} fill="white" /> BEST SELLER
+                    </span>
+                  )}
                   <span className="category-tag">{product.category}</span>
                 </div>
                 
                 <div className="card-content">
-                  <h3 className="card-title">{product.name}</h3>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <h3 className="card-title">{product.name}</h3>
+                  </div>
+
                   <div className="farmer-tag">
                     <MapPin size={14} /> Sold by {product.farmerName} ({product.farmerLocation})
                   </div>
@@ -156,9 +199,17 @@ const Consumer = ({ cart, addToCart, addToast, refreshTrigger }) => {
                       <span className="price-val">₹{Number(product.price).toFixed(2)}</span>
                       <span className="price-unit">per {product.unit}</span>
                     </div>
-                    <span className={`stock-tag ${isOutOfStock ? 'out' : product.quantity <= 10 ? 'low' : ''}`}>
-                      {isOutOfStock ? 'Out of Stock' : `${product.quantity} ${product.unit}s left`}
-                    </span>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.2rem' }}>
+                      <span className={`stock-tag ${isOutOfStock ? 'out' : product.quantity <= 10 ? 'low' : ''}`}>
+                        {isOutOfStock ? 'Out of Stock' : `${product.quantity} ${product.unit}s left`}
+                      </span>
+                      {soldCount > 0 && (
+                        <span className="sold-badge" title="Total units ordered by customers">
+                          <Flame size={12} /> {soldCount} {product.unit}s sold
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 40px', gap: '0.5rem', marginTop: 'auto' }}>
@@ -195,11 +246,19 @@ const Consumer = ({ cart, addToCart, addToast, refreshTrigger }) => {
               ✕
             </button>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <img 
-                src={detailedProduct.imageUrl} 
-                alt={detailedProduct.name} 
-                style={{ width: '100%', height: '300px', objectFit: 'cover', borderRadius: 'var(--radius-md)', background: 'var(--primary-soft)' }}
-              />
+              <div style={{ position: 'relative' }}>
+                <img 
+                  src={detailedProduct.imageUrl} 
+                  alt={detailedProduct.name} 
+                  style={{ width: '100%', height: '300px', objectFit: 'cover', borderRadius: 'var(--radius-md)', background: 'var(--primary-soft)' }}
+                />
+                {(detailedProduct.soldCount || 0) > 0 && (
+                  <span className="bestseller-badge" style={{ top: '1rem', left: '1rem' }}>
+                    <Flame size={14} fill="white" /> POPULAR ({detailedProduct.soldCount} SOLD)
+                  </span>
+                )}
+              </div>
+
               <div>
                 <span className="category-tag" style={{ position: 'static', display: 'inline-block', marginBottom: '0.5rem' }}>
                   {detailedProduct.category}
@@ -232,10 +291,15 @@ const Consumer = ({ cart, addToCart, addToast, refreshTrigger }) => {
                     </strong>
                   </div>
                   <div>
-                    <span style={{ fontSize: '0.8rem', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', textAlign: 'right' }}>Availability</span>
-                    <span style={{ fontSize: '1.1rem', fontWeight: '700', color: detailedProduct.quantity === 0 ? 'red' : 'inherit' }}>
+                    <span style={{ fontSize: '0.8rem', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', textAlign: 'right' }}>Availability & Demand</span>
+                    <span style={{ fontSize: '1.1rem', fontWeight: '700', color: detailedProduct.quantity === 0 ? 'red' : 'inherit', display: 'block', textAlign: 'right' }}>
                       {detailedProduct.quantity === 0 ? 'Out of Stock' : `${detailedProduct.quantity} ${detailedProduct.unit}s available`}
                     </span>
+                    {(detailedProduct.soldCount || 0) > 0 && (
+                      <span style={{ fontSize: '0.8rem', color: '#b45309', fontWeight: 600, display: 'block', textAlign: 'right' }}>
+                        🔥 Total Sales: {detailedProduct.soldCount} {detailedProduct.unit}s
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -269,3 +333,4 @@ const Consumer = ({ cart, addToCart, addToast, refreshTrigger }) => {
 };
 
 export default Consumer;
+

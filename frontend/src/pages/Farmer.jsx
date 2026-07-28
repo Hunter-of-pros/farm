@@ -506,9 +506,16 @@ const Farmer = ({ addToast }) => {
                         <span className="price-val">₹{Number(product.price).toFixed(2)}</span>
                         <span className="price-unit">per {product.unit}</span>
                       </div>
-                      <span className={`stock-tag ${product.quantity === 0 ? 'out' : product.quantity <= 10 ? 'low' : ''}`}>
-                        {product.quantity === 0 ? 'Out of Stock' : `${product.quantity} ${product.unit}s available`}
-                      </span>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.2rem' }}>
+                        <span className={`stock-tag ${product.quantity === 0 ? 'out' : product.quantity <= 10 ? 'low' : ''}`}>
+                          {product.quantity === 0 ? 'Out of Stock' : `${product.quantity} ${product.unit}s available`}
+                        </span>
+                        {(product.soldCount || 0) > 0 && (
+                          <span style={{ fontSize: '0.78rem', color: '#b45309', fontWeight: 700, background: '#fef3c7', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
+                            🔥 {product.soldCount} {product.unit}s sold
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem', marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>

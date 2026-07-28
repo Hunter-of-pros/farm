@@ -1153,6 +1153,36 @@ a {
   text-transform: uppercase;
 }
 
+.bestseller-badge {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  padding: 0.3rem 0.75rem;
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  color: white;
+  font-weight: 800;
+  font-size: 0.73rem;
+  border-radius: 50px;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  z-index: 2;
+  letter-spacing: 0.3px;
+}
+
+.sold-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #b45309;
+  background: #fef3c7;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+}
+
 .card-content {
   padding: 1.5rem;
   display: flex;
