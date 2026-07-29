@@ -5,6 +5,7 @@
   "description": "Farm-to-Consumer direct marketplace monorepo",
   "scripts": {
     "build": "cd frontend && npm install && npm run build",
+    "vercel-build": "cd frontend && npm install && npm run build",
     "start": "cd backend && npm start",
     "dev": "cd frontend && npm run dev"
   },
