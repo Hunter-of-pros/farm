@@ -9,8 +9,13 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/farmDirect';
 
-// Middleware
-app.use(cors());
+// Middleware — allow all origins so browser fetch never gets blocked by CORS
+app.use(cors({
+  origin: '*',
+  methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization']
+}));
+app.options('*', cors()); // handle preflight for all routes
 app.use(express.json());
 
 // Database connection utility for serverless environment compatibility
@@ -85,7 +90,7 @@ if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
 
 // Start Server
 if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
-  app.listen(PORT, () => {
+  app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running on port ${PORT}`);
   });
 }
