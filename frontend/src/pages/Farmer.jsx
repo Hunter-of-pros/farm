@@ -673,27 +673,26 @@ const Farmer = ({ addToast }) => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Category (Auto-detected)</label>
-                <div style={{
-                  padding: '0.8rem',
-                  background: 'var(--bg-soft)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: 'var(--radius-md)',
-                  fontWeight: 600,
-                  color: 'var(--primary-dark)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  fontSize: '0.9rem'
-                }}>
-                  <span style={{
-                    width: '8px',
-                    height: '8px',
-                    borderRadius: '50%',
-                    background: productForm.category === 'Fruit' ? '#FBBC05' : productForm.category === 'Vegetable' ? '#34A853' : productForm.category === 'Grain' ? '#E28743' : '#777777'
-                  }}></span>
-                  {productForm.category || 'Type name to detect...'}
-                </div>
+                <label className="form-label">Category</label>
+                <select
+                  className="form-input"
+                  value={productForm.category}
+                  onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
+                  required
+                  style={{
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    color: 'var(--primary-dark)',
+                  }}
+                >
+                  <option value="">— Select Category —</option>
+                  {CATEGORIES.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem', display: 'block' }}>
+                  Auto-detected from produce name — you can override it manually.
+                </span>
               </div>
 
               <div className="form-row">
