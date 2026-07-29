@@ -438,6 +438,17 @@ const Farmer = ({ addToast }) => {
             <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{orders.length}</div>
             <div style={{ fontSize: '0.8rem', opacity: 0.85, textTransform: 'uppercase' }}>Total Orders</div>
           </div>
+          <div style={{ textAlign: 'center', background: 'rgba(255,255,255,0.1)', padding: '1rem 1.5rem', borderRadius: 'var(--radius-md)', minWidth: '120px' }}>
+            <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>
+              ₹{orders.reduce((sum, order) => {
+                if (order.status === 'Cancelled') return sum;
+                const farmerItems = order.items.filter(item => item.farmerName.toLowerCase() === farmerName.toLowerCase());
+                const orderEarning = farmerItems.reduce((itemSum, item) => itemSum + (item.quantity * item.price), 0);
+                return sum + orderEarning;
+              }, 0).toFixed(2)}
+            </div>
+            <div style={{ fontSize: '0.8rem', opacity: 0.85, textTransform: 'uppercase' }}>Total Earnings</div>
+          </div>
         </div>
       </div>
 
